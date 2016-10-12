@@ -43,6 +43,604 @@
 <li>Look at multiplication, if you took the correct apple then the enemy will lose life. If you took the incorrect apple then enemy will win life.</li>
 <li>Enjoy ^_^</li>
 </ul>
+          
+          <div id="principal"  >
+
+		<div id="controImagenJugador" >
+			<label for="imagenJugador">Escoge una imagen para tu jugador</label>
+			<input id="cargarImagen" type="file" value="Cargar"/>
+
+		</div>
+		
+		<div id="botones">
+			<button id="go" onclick="empezar()">Jugar</button>
+			<button id="pausa" onclick="parat1()">Pausa</button>
+			<button id="reiniciar" onclick="limpiar()">Reiniciar</button>
+		</div>
+		<div id="zonaDibujo">
+			<canvas id="graficos" width="500" height="500" style="top:50px;border:1px solid #000000;"></canvas>
+		</div>
+		
+      </div>
+      <script type="text/javascript">
+			var t1=null;
+			var rojo="red";
+			var blanco="white";
+			var negro="black";
+			var amarillo="yellow";
+			var azul="blue";
+			var rosa="pink";
+			var naranja="orange";
+			var verde="green";
+			var colorFondo=rosa;
+			var colorTextoManzana=blanco;
+			var graficos=document.getElementById("graficos");
+			var go=document.getElementById("go");
+			var pausa=document.getElementById("pausa");
+			var reiniciar=document.getElementById("reiniciar");
+			var xLimG=graficos.width;
+			var yLimG=graficos.height;
+			var contexto=graficos.getContext("2d");
+			var xLimZonJuego=xLimG-100;
+			var yLimZonJuego=yLimG;
+			var imagenJugador= new Image();
+			var xTamImagenJugador=xLimZonJuego/10;
+			var yTamImagenJugador=yLimZonJuego/10;
+			var xImagenJugador=xLimZonJuego-xTamImagenJugador;
+			var yImagenJugador=yLimZonJuego-yTamImagenJugador;
+			
+			go.disabled=true;
+			pausa.disabled=true;
+			reiniciar.disabled=true;
+			graficos.addEventListener('mousemove', obtenerCoordenadas, false);
+			document.getElementById("cargarImagen").addEventListener('change', ficheroSeleccionado, false);
+
+			//siguiente paso cargar las imagenes por defecto
+			var imagenBrujo=new Image();
+			imagenBrujo.src="";
+			//cargarImagenBrujo();
+			var imagenManzana=new Image();
+			imagenManzana.src="";
+			//cargarImagenManzana();
+			imagenJugador.src="";
+			
+			//crear una bandera para activar el raton en la zona de juego
+			var banderaActiva=false;
+			
+			//siguiente paso mover manzanas. 
+			var manzanas=new Array(5);
+			var numManzanasBuena=3;
+			InciarManzanas();
+			//crear puntos
+			var puntos=0;
+			
+			//crear hechizo
+			var hechizo=new Array(2);
+			//estado del jugador
+			var estadoJugador=0;
+			//vida del malo
+			var vida=30;
+
+			var vidaNivel=4;
+			crearHechizo();
+			meterManzanasBuenas(numManzanasBuena);
+			crearZonadeJuego();
+			
+			function limpiar(){
+				puntos=0;
+				estadoJugador=0;
+				banderaActiva=false;
+				vida=30;
+				go.disabled=false;
+				pausa.disabled=false;
+				colorTextoManzana=blanco;
+				InciarManzanas();
+				crearHechizo();
+				meterManzanasBuenas(numManzanasBuena);
+				crearZonadeJuego();
+				if (imagenJugador.complete) {
+					 contexto.drawImage(imagenJugador,xImagenJugador , yImagenJugador);
+					 parat1();
+				 }
+				return;
+			}
+			function finalBueno(){
+				
+				//limpiar();
+				//Limpiar zona de juego
+				imagenManzana.src="";
+				colorTextoManzana=colorFondo;
+				for (var t=0;t<manzanas.length;t++){
+					parat1();
+					dibujar_cuadro(0,0,xLimG,yLimG,colorFondo);
+				};
+				go.disabled=true;
+				pausa.disabled=true;
+				//poner texto vencido
+				var textoVencido="¡¡¡Oh me has vencido!!!";
+				
+				ponerTexto(250,40,textoVencido,30,rojo);
+				textoVencido="Tienes un gran nivel";
+				ponerTexto(250,80,textoVencido,30,rojo);
+				textoVencido="La próxima vez...";
+				ponerTexto(250,120,textoVencido,30,rojo);
+				textoVencido="No podrás conmigo";
+				ponerTexto(250,160,textoVencido,30,rojo);
+				textoVencido="¡¡¡Ja Ja Ja!!!";
+				ponerTexto(250,200,textoVencido,40,rojo);
+				//dibujar brujo
+				contexto.drawImage(imagenBrujo,250,250);
+				//poner puntos
+				textoVencido="Has conseguido "+puntos+" puntos";
+				ponerTexto(250,400,textoVencido,25,azul);
+				//t1=setInterval("limpiar()",15000);
+				
+				return;
+			}
+			function finalMalo(){
+				
+				//limpiar();
+				//Limpiar zona de juego
+				imagenManzana.src="";
+				colorTextoManzana=colorFondo;
+				for (var t=0;t<manzanas.length;t++){
+					parat1();
+					dibujar_cuadro(0,0,xLimG,yLimG,colorFondo);
+				};
+				go.disabled=true;
+				pausa.disabled=true;
+				//poner texto vencido
+				var textoVencido="¡¡¡JA JA JA!!!";
+				
+				ponerTexto(250,40,textoVencido,40,rojo);
+				textoVencido="Te he vencido";
+				ponerTexto(250,80,textoVencido,30,rojo);
+				textoVencido="No tienes poder sobre mi";
+				ponerTexto(250,120,textoVencido,30,rojo);
+				textoVencido="Te venceré otra vez";
+				ponerTexto(250,160,textoVencido,30,rojo);
+				textoVencido="¡¡¡Ja Ja Ja!!!";
+				ponerTexto(250,200,textoVencido,40,rojo);
+				//dibujar brujo
+				contexto.drawImage(imagenBrujo,250,250);
+				//poner puntos
+				textoVencido="Has conseguido "+puntos+" puntos";
+				ponerTexto(250,400,textoVencido,25,azul);
+				//t1=setInterval("limpiar()",15000);
+				
+				return;
+			}
+			function crearHechizo(){
+				hechizo[0]=parseInt(10*Math.random())+1;
+				hechizo[1]=parseInt(10*Math.random())+1;
+				return;
+			}
+			function barraVidaMalo(vida){
+				//dibujara la vida del malo
+				
+				var xBarra=xLimZonJuego+20;
+				var yBarra=yLimG/2+40+ imagenBrujo.height+10;
+				
+				if (vida<0){
+					vida=0;
+				}
+				if (xBarra+vida>xLimG-10){
+					vida=xLimG-10-xBarra;
+				}
+				dibujar_cuadro(xBarra,yBarra,xLimG-10-xBarra,10,colorFondo);
+				dibujar_cuadro(xBarra,yBarra,xLimG-10-xBarra,10,negro);
+				dibujar_cuadro(xBarra,yBarra,vida,10,verde);
+			}
+			function InciarManzanas(){
+				var xArriba=0;
+				var yArriba=10;
+				var velocidad=0;
+				var valor=0;
+				
+				for (var i=0;i<manzanas.length;i++){
+					//colocar manzanas arriba
+					xArriba=i*xLimZonJuego/manzanas.length;
+					//darle una velocidad
+					velocidad=parseInt(10*Math.random())+2;
+					//darle un valor
+					valor=parseInt(100*Math.random())+1;
+					manzanas[i]=xArriba+","+yArriba+","+velocidad+","+valor;
+				}
+				return;
+			}
+			function meterManzanasBuenas(cantidad){
+				var manzana=new Array(4);
+				var posicion=0;
+				var xArriba=0;
+				var yArriba=10;
+				var velocidad=0;
+				var valor=0;
+				for (var j=0;j<cantidad;j++){
+					posicion=parseInt(manzanas.length*Math.random());
+					//cogemos datos
+					manzana=manzanas[posicion].split(",");
+					xArriba=manzana[0];
+					yArriba=manzana[1];
+					velocidad=manzana[2];
+					valor=hechizo[0]*hechizo[1];
+					//ponemos datos
+					manzanas[posicion]=xArriba+","+yArriba+","+velocidad+","+valor;
+				}
+				
+				return;
+			}
+			function moverManzanas(){
+				var datosManzana=new Array(4);
+				var xManzana=0;
+				var yManzana=0;
+				var yAux=0;
+				var valor=0;
+				var velocidad=0;
+				imagenManzana.src="";
+				
+				imagenManzana.onload = function() {
+					if (imagenManzana.src!=""){
+						for (var i=0;manzanas.length;i++){
+							datosManzana=manzanas[i].split(",");
+							xManzana=parseInt(datosManzana[0]);
+							yManzana=parseInt(datosManzana[1]);
+							velocidad=parseInt(datosManzana[2]);
+							valor=datosManzana[3];
+							yAux=yManzana+velocidad;
+							dibujar_cuadro(xManzana,yManzana,imagenManzana.width,imagenManzana.height,colorFondo);
+							if (yAux>yLimG){
+								yAux=10;
+								velocidad=parseInt(10*Math.random())+1;
+								//darle un valor
+								var suerte=Math.random();
+								if (suerte<numManzanasBuena/manzanas.length){
+									valor=hechizo[0]*hechizo[1];
+								}else{
+									//darle un valor
+								valor=parseInt(100*Math.random())+1;
+							    }
+							}
+							yManzana=yAux;
+							//ver si coincide con imagenJugador
+							if (cogerManzana(xManzana,yManzana)){
+								//comprobar si has cogido el valor bueno
+								var valorHechizo=hechizo[0]*hechizo[1];
+								var puntosAux=0;
+								if (parseInt(valor)==valorHechizo){
+									puntosAux=valorHechizo;
+									estadoJugador++;
+									vida=vida-10/vidaNivel;
+									if (estadoJugador>1){
+										estadoJugador=1;
+									}
+									crearHechizo();
+								}else{
+									puntosAux=-parseInt(valor);
+									estadoJugador=estadoJugador-1;
+									vida=vida+10/vidaNivel;
+									if (estadoJugador<0){
+										estadoJugador=0;
+									}
+								}
+								if (puntos+puntosAux>=0){
+									puntos=puntos+puntosAux;
+								}else{
+									puntos=0;
+								}
+								yManzana=10;
+								velocidad=parseInt(10*Math.random())+1;
+								
+								
+								//meter manzana buena con una probabilidad
+								var suerte=Math.random();
+								if (suerte<numManzanasBuena/manzanas.length){
+									valor=hechizo[0]*hechizo[1];
+								}else{
+									//darle un valor
+									valor=parseInt(100*Math.random())+1;
+							    }
+							    //redibujar
+							    //estado jugador
+							    caraSonriente(estadoJugador);
+								//puntos
+								dibujar_cuadro(xLimZonJuego+10,yLimG/2-110,xLimG-10,yLimG/2-100,colorFondo);
+								ponerTexto(xLimZonJuego+50,yLimG/2-100,"Puntos "+puntos,15,azul);
+								//hechizo
+								var textoHechizo=hechizo[0]+"x"+hechizo[1];
+								ponerTexto(xLimZonJuego+50,yLimG/2,textoHechizo,20,azul);
+								//barra malo
+								barraVidaMalo(vida);
+								//fin de juego
+								if (vida<=0){
+									//has ganado
+									
+									finalBueno();
+								}
+								if (vida> (xLimG-10-(xLimZonJuego+20))){
+									//has perdido
+									finalMalo();
+								}
+								
+							}
+							
+							contexto.drawImage(imagenManzana,xManzana,yManzana);
+							ponerTexto(xManzana+20,yManzana+imagenManzana.height/2+5,valor,20,colorTextoManzana);
+							
+							manzanas[i]=""+xManzana+","+yManzana+","+velocidad+","+valor;
+							
+						}
+					}
+				}
+				cargarImagenManzana();
+				return;
+			}
+			function cogerManzana(xManzana,yManzana){
+				//ver si la imagen coincide con la manzana
+				var coinciden = false;
+				//calculamos primero la parte de radio de cada imagen
+				//imagen jugador
+				var radioJugador=Math.sqrt(Math.pow(imagenJugador.width/2,2)+Math.pow(imagenJugador.height/2,2));
+				//imagen manzana
+				var radioManzana=Math.sqrt(Math.pow(imagenManzana.width,2)+Math.pow(imagenManzana.height,2));
+				//radio total
+				var radioTotal=radioJugador+radioManzana;
+				//ahora calculamos el radio desde el centro de la imagen del jugador hasta el inicio de la imagen de la manzana
+				//jugador
+				var radio2=Math.sqrt(Math.pow(xManzana-xImagenJugador,2)+Math.pow(yManzana-yImagenJugador,2));
+				//si radio2 es menor que radioTotal, la coge
+				if (radio2<=radioManzana-15){
+					coinciden=true;
+				}
+				return coinciden;
+			}
+			function ficheroSeleccionado(evt) {
+				var ficheros = document.getElementById("cargarImagen").files;
+				// Tan solo procesaremos el primer fichero
+				var fichero = ficheros[0];
+				var reader = new FileReader();
+				reader.onload = function (oFREvent) {
+
+						
+						
+						//ponerla en el canvas auxiliar, hacer el cavas mas chico y capturar esa imagen
+						var canvasAux=document.createElement('canvas');
+						var contexto2=canvasAux.getContext("2d");
+						var nuevaImagen= new Image();
+						nuevaImagen.onload=function(){
+							//alert("Preparate para divertirte 2"+nuevaImagen.src);
+							canvasAux.width=nuevaImagen.width;
+							canvasAux.height=nuevaImagen.height;
+							var scaleX=xTamImagenJugador/nuevaImagen.width;
+							var scaleY=yTamImagenJugador/nuevaImagen.height;
+							contexto2.scale(scaleX, scaleY);
+							contexto2.drawImage(nuevaImagen, 0, 0);
+							imagenJugador.onload=function(){
+								//alert("Preparate para divertirte "+imagenJugador.src);
+								contexto.drawImage(imagenJugador,xImagenJugador , yImagenJugador);
+								go.disabled=false;
+								pausa.disabled=false;
+								reiniciar.disabled=false;
+								return;
+							}
+							imagenJugador.src=canvasAux.toDataURL("image/png");
+
+						}
+						nuevaImagen.src= oFREvent.target.result;
+						return;
+
+					};
+				if (fichero.type.match(/^(?:image\/bmp|image\/cis\-cod|image\/gif|image\/ief|image\/jpeg|image\/jpeg|image\/jpeg|image\/pipeg|image\/png|image\/svg\+xml|image\/tiff|image\/x\-cmu\-raster|image\/x\-cmx|image\/x\-icon|image\/x\-portable\-anymap|image\/x\-portable\-bitmap|image\/x\-portable\-graymap|image\/x\-portable\-pixmap|image\/x\-rgb|image\/x\-xbitmap|image\/x\-xpixmap|image\/x\-xwindowdump)$/)) {
+					
+					reader.readAsDataURL(fichero);
+					
+					//divImagenJugador.src=imagen.replace("image/png", "image/octet-stream");
+					//alert(divImagenJugador.src);
+				}
+				
+				return;
+			}
+			
+			function crearZonadeJuego(){
+				//creamos pantalla
+				 dibujar_cuadro(0,0,xLimG,yLimG,colorFondo);
+				//dividimos la pantalla en dos
+				contexto.strokeStyle = negro;
+				contexto.moveTo(xLimZonJuego+1,0);
+				contexto.lineTo(xLimZonJuego+1,yLimG);
+				contexto.stroke();
+				//poner texto zona informacion
+				//hechizo
+				ponerTexto(xLimZonJuego+50,yLimG/2,hechizo[0]+"x"+hechizo[1],20,azul);
+				//brujo
+				imagenBrujo.src="";
+				imagenBrujo.onload = function() {
+					contexto.drawImage(imagenBrujo,xLimZonJuego+20,yLimG/2+40);
+					barraVidaMalo(vida);
+				};
+				cargarImagenBrujo();
+				//vida brujo
+				
+				//puntos
+				ponerTexto(xLimZonJuego+50,yLimG/2-100,"Puntos "+puntos,15,azul);
+				// cargar estadojugador
+				caraSonriente(estadoJugador);
+				// manzanas iniciales
+				imagenManzana.src="";
+				imagenManzana.onload = function() {
+					var datosManzana=new Array(4);
+					var xManzana=0;
+					var yManzana=0;
+					var valor=0;
+
+					for (var i=0;i<manzanas.length;i++){
+						datosManzana=manzanas[i].split(',');
+						xManzana=parseInt(datosManzana[0]);
+						yManzana=parseInt(datosManzana[1]);
+						valor=datosManzana[3];
+						
+						contexto.drawImage(imagenManzana,xManzana,yManzana);
+						ponerTexto(xManzana+20,yManzana+imagenManzana.height/2+5,valor,20,colorTextoManzana);
+					}
+					
+				};
+				cargarImagenManzana();
+				
+				
+
+				return;
+			}
+			function obtenerCoordenadas(e) {
+				if (banderaActiva){
+					var x=0;
+					var y =0;
+					if (e.layerX || e.layerX == 0) { // MOzilla
+						  x = e.layerX;
+						  y = e.layerY;
+						} else if (e.offsetX || e.offsetX == 0) { // Opera
+						  x = e.offsetX;
+						  y = e.offsetY;
+						}
+					  xClick = x - this.offsetLeft;
+					  yClick = y - this.offsetTop;
+
+					  botonRaton=e.which;
+					  moverImagen(xClick,yClick);
+				}
+				  return;
+			}
+			function moverImagen(x,y){
+				//borramos la anterior;
+				dibujar_cuadro(xImagenJugador , yImagenJugador,xTamImagenJugador,yTamImagenJugador,colorFondo);
+				//pintamos nuevo
+				if (x>=(xLimZonJuego-xTamImagenJugador)){
+					x=xLimZonJuego-xTamImagenJugador;
+				}
+				xImagenJugador=x;
+				/*var aux=imagenJugador.src;
+				imagenJugador.src="";
+				imagenJugador.src=aux;*/
+				 if (imagenJugador.complete) {
+					 contexto.drawImage(imagenJugador,xImagenJugador , yImagenJugador);
+				 }
+				//ponerTexto();
+				return;
+			}
+			function dibujar_cuadro(x1,y1,x2,y2,color){
+				contexto.fillStyle = color;
+				contexto.fillRect(x1, y1, x2,y2);
+				/*contexto.lineWidth = 1;
+				contexto.strokeStyle = negro;
+				contexto.strokeRect(x1, y1, x2, y2);*/
+				return;
+			} 
+			function ponerTexto(x,y,texto,tam,color){
+				contexto.fillStyle=color;
+				contexto.font="bold +"+tam+"px Arial";
+				contexto.textAlign="center";
+				contexto.fillText(texto,x,y);
+				
+				return;
+			}
+			function empezar(){
+				//activar la bandera si hay una imagenJugador
+				if (imagenJugador.src.indexOf("data:image/")>-1){
+					banderaActiva=true;
+					go.disabled=true;
+					t1=setInterval("moverManzanas()",100);
+					
+				}
+				return;
+			}
+			
+			function parat1() {	 
+				//al soltar el ratón:
+				clearInterval(t1);//parar el temporizador.
+				banderaActiva=false;
+				go.disabled=false;
+			}
+			function comprobarNumero(valor){
+				var regExp=/[0-9]{1,10}$/.test(valor);
+				return regExp;
+			}
+			function shuffle(array){
+			  var j, temp;
+			  for(var i = array.length - 1; i > 0; i--){
+				j = Math.floor(Math.random() * (i + 1));
+				temp = array[i];
+				array[i] = array[j];
+				array[j] = temp;
+			  }
+			  return array;
+			}
+			function caraSonriente(grado){
+				var radio=(xLimG-xLimZonJuego)/3;
+				
+				dibujar_cuadro((xLimG+xLimZonJuego)/2-radio,yLimG/8-radio,2*radio,2*radio,colorFondo);
+				
+				contexto.beginPath();
+				contexto.arc((xLimG+xLimZonJuego)/2, yLimG/8, radio, 0, 2 * Math.PI, false);
+				contexto.closePath();
+				contexto.fillStyle = amarillo;
+				contexto.stroke();
+				contexto.fill();
+				 
+				contexto.beginPath();
+				contexto.arc((xLimG+xLimZonJuego-20)/2, yLimG/8-10,  radio/5, 0, 2 * Math.PI, false);
+				contexto.closePath();
+				contexto.fillStyle = blanco;
+				contexto.stroke();
+				contexto.fill();
+				 
+				contexto.beginPath();
+				contexto.arc((xLimG+xLimZonJuego-25)/2, yLimG/8-9, radio/25, 0, 2 * Math.PI, false);
+				contexto.closePath();
+				contexto.fillStyle = azul;
+				contexto.stroke();
+				contexto.fill();
+				 
+				contexto.beginPath();
+				contexto.arc((xLimG+xLimZonJuego+20)/2, yLimG/8-10, radio/5, 0, 2 * Math.PI, false);
+				contexto.closePath();
+				contexto.fillStyle = blanco;
+				contexto.stroke();
+				contexto.fill();
+				 
+				contexto.beginPath();
+				contexto.arc((xLimG+xLimZonJuego+15)/2, yLimG/8-9, radio/25, 0, 2 * Math.PI, false);
+				contexto.closePath();
+				contexto.fillStyle = azul;
+				contexto.stroke();
+				contexto.fill();
+				 
+				contexto.lineWidth = 2;
+				if (grado<1){
+					contexto.beginPath();
+					
+					contexto.arc((xLimG+xLimZonJuego+5)/2, yLimG/8+20, radio/10*6, 0, 3, true);
+				}else{
+					contexto.beginPath();
+					contexto.arc((xLimG+xLimZonJuego+5)/2, yLimG/8+5, radio/10*6, 0, 3, false);
+					contexto.closePath();
+
+					contexto.fillStyle = blanco;
+					contexto.fill();
+				}
+
+				contexto.strokeStyle = negro;
+				
+				contexto.stroke();
+				
+				return;
+			}
+			function cargarImagenBrujo(){
+				imagenBrujo.src="data:image/png;base64,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";
+				return;
+			}
+			function cargarImagenManzana(){
+				imagenManzana.src="data:image/png;base64,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";
+				return;
+			}
+       </script>
         </section>
 
         <aside id="sidebar">
